@@ -27,11 +27,205 @@ specific language governing permissions and limitations under the License.
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/imageView"
-        android:minHeight="256dp"
-        android:minWidth="256dp"
-        android:layout_gravity="center"
+        android:minHeight="64dp"
+        android:minWidth="64dp"
+        android:layout_gravity="right"
         android:elevation="2dp"
         android:scaleType="center"
         android:background="@drawable/circle"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dip"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/button40"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="view_promotion" />
+        <Button
+            android:id="@+id/button41"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="select_promotion" />
+        <Button
+            android:id="@+id/button50"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="view_item_list" />
+        <Button
+            android:id="@+id/button51"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="select_item" />
+
+        <Button
+            android:id="@+id/button60"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="add_to_cart" />
+        <Button
+            android:id="@+id/button61"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="view_cart" />
+        <Button
+            android:id="@+id/button62"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="remove_from_cart" />
+        <Button
+            android:id="@+id/button63"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="add_to_wishlist" />
+
+        <Button
+            android:id="@+id/button91"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="add_shipping_info" />
+        <Button
+            android:id="@+id/button90"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="add_payment_info" />
+        <Button
+            android:id="@+id/button92"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="begin_checkout" />
+        <Button
+            android:id="@+id/button93"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="purchase" />
+        <Button
+            android:id="@+id/button94"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="refund" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_margin="5dip"
+        android:gravity="right"
+        android:paddingTop="200dp"
+        android:orientation="vertical">
+
+        <!--button view for hindi language-->
+        <!-- <Button
+            android:id="@+id/btnFr"
+            android:textColor="#ffffff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FR"/> -->
+
+        <!--button view for english language-->
+        <!-- <Button
+            android:id="@+id/btnEn"
+            android:textColor="#ffffff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EN"/> -->
+
+        <Button
+            android:id="@+id/button70"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="consent_open" />
+        <Button
+            android:id="@+id/button71"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="consent_check" />
+        <Button
+            android:id="@+id/button70"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="GA_enable" />
+        <Button
+            android:id="@+id/button70"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="GA_disable" />
+
+        <Button
+            android:id="@+id/button00"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="custom_event" />
+        <Button
+            android:id="@+id/button01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="click" />
+        <Button
+            android:id="@+id/button02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="view" />
+
+        <Button
+            android:id="@+id/button30"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="select_content" />
+
+        <Button
+            android:id="@+id/button33"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="ob_btnClick"
+            android:textSize="10sp"
+            android:text="dynamic_link_app_open" />
+    </LinearLayout>
 </FrameLayout>

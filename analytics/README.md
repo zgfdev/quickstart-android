@@ -54,3 +54,9 @@ the License.
 
 [user-props]: https://firebase.google.com/docs/analytics/android/properties
 [debug-view]: https://firebase.google.com/docs/analytics/debugview
+
+<hr>
+
+## fork and update /analytics in December 2023
+
+### how to config consentmanager.net for Android

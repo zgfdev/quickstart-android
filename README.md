@@ -46,3 +46,8 @@ Please read and follow the steps in the [CONTRIBUTING.md](CONTRIBUTING.md)
 [gh-actions-badge]: https://github.com/firebase/quickstart-android/workflows/Android%20CI/badge.svg
 [sam-score]: https://ossbot.computer/samscore.html
 [sam-score-badge]: https://ossbot.computer/samscorebadge?org=firebase&repo=quickstart-android
+
+
+<hr>
+
+## fork and update /analytics in December 2023

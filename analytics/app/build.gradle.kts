@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId = "com.google.firebase.quickstart.analytics"
-        minSdk = 19
+        minSdk = 21
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -60,6 +60,9 @@ dependencies {
 
     // Firebase Analytics
     implementation("com.google.firebase:firebase-analytics")
+
+    // consentmanager
+    implementation("net.consentmanager.sdk:android:1.7.32")
 
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test:rules:1.5.0")

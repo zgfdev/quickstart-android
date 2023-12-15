@@ -1,23 +1,4 @@
-/*
- * Copyright Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
- * For more information on setting up and running this sample code, see
- * https://firebase.google.com/docs/analytics/android
- */
+//https://firebase.google.com/docs/analytics/android
 
 package com.google.firebase.quickstart.analytics.java;
 
@@ -27,6 +8,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,14 +26,34 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.quickstart.analytics.R;
 import com.google.firebase.quickstart.analytics.databinding.ActivityMainBinding;
+
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
+import java.util.EnumMap;
+import java.util.Objects;
+
+import net.consentmanager.sdk.CMPConsentTool;
+import net.consentmanager.sdk.common.CmpError;
+import net.consentmanager.sdk.common.callbacks.OnOpenCallback;
+import net.consentmanager.sdk.common.callbacks.OnCloseCallback;
+import net.consentmanager.sdk.common.callbacks.OnErrorCallback;
+import net.consentmanager.sdk.common.callbacks.OnCMPNotOpenedCallback;
+import net.consentmanager.sdk.common.callbacks.OnCmpButtonClickedCallback;
+import net.consentmanager.sdk.consentlayer.model.CMPConfig;
+import net.consentmanager.sdk.consentlayer.model.valueObjects.CmpButtonEvent;
+import net.consentmanager.sdk.common.callbacks.CmpImportCallback;
+
 
 /**
  * Activity which displays numerous background images that may be viewed. These background images
  * are shown via {@link ImageFragment}.
  */
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+    private CMPConsentTool consentTool;
+
+    // private static final String TAG = "MainActivity";
+    private static final String TAG = "OBLOG";
     private static final String KEY_FAVORITE_FOOD = "favorite_food";
 
     private static final ImageInfo[] IMAGE_INFOS = {
@@ -76,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
      * The {@code FirebaseAnalytics} used to record screen views.
      */
     // [START declare_analytics]
-    private FirebaseAnalytics mFirebaseAnalytics;
+    private FirebaseAnalytics mFBA;
     // [END declare_analytics]
 
     /**
@@ -90,9 +94,50 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        //consentmanager instance
+        CMPConfig obcmpConfig = CMPConfig.INSTANCE;
+        obcmpConfig.setServerDomain("delivery.consentmanager.net");
+        obcmpConfig.setAppName("DemoAppTM");
+        obcmpConfig.setLanguage("EN");
+        obcmpConfig.setId("xxxxx"); //replace these configuration variables with your own CMP information
+        obcmpConfig.setDebug(true);
+        consentTool = CMPConsentTool.createInstance(this, obcmpConfig);
+//        consentTool = CMPConsentTool.createInstance(this, cmpID, "delivery.consentmanager.net", "DemoAppTM", "EN");
+
+        //consentmanager event listener
+        consentTool.setCallbacks(
+            ()->obFn_consent_listener("open"),
+            ()->obFn_consent_listener("close"),
+            ()->obFn_consent_listener("not-open"),
+            new OnErrorCallback() {
+                @Override
+                public void errorOccurred(@NonNull CmpError type, @NonNull String message) {
+                    obFn_consent_listener("error");
+                    OnErrorCallback.super.errorOccurred(type, message);
+                }
+            },
+            new OnCmpButtonClickedCallback() {
+                @Override
+                public void onButtonClicked(@NonNull CmpButtonEvent cmpButtonEvent) {
+                    obFn_consent_listener("click");
+                }
+        });
+
+        //consentmanager import&export
+        // final String CMP_STRING = "QlAyZkFuQ1AyZkFuQ0FmUjJCRU5BQkFBQUFBQUFBI181MV81Ml81M181NF81NV8jX3MyM19zMjZfczkwNV9VXyMxWU5OIw";
+        // consentTool.importCmpString(CMP_STRING, new CmpImportCallback() {
+        //     @Override
+        //     public void onImportResult(boolean b, @NonNull String s) {
+        //         obFn_consent_check();
+        //     }
+        // });
+        // String consentData = consentTool.exportCmpString();
+        // Log.d(TAG,"cmp_string:"+consentData);
+
+
         // [START shared_app_measurement]
         // Obtain the FirebaseAnalytics instance.
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        mFBA = FirebaseAnalytics.getInstance(this);
         // [END shared_app_measurement]
 
         // On first app open, ask the user his/her favorite food. Then set this as a user property
@@ -103,6 +148,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             setUserFavoriteFood(userFavoriteFood);
         }
+
+        // 设置所有事件的默认参数
+        Bundle dParams = new Bundle();
+        dParams.putString("obv", "demoApp_FA_test");
+        // dParams.putString(FirebaseAnalytics.Param.SCREEN_NAME, "sn_set2all");
+        mFBA.setDefaultEventParameters(dParams);
+
 
         // Create the adapter that will return a fragment for each image.
         mImagePagerAdapter = new ImagePagerAdapter(getSupportFragmentManager(), IMAGE_INFOS, getLifecycle());
@@ -181,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                 .apply();
 
         // [START user_property]
-        mFirebaseAnalytics.setUserProperty("favorite_food", mFavoriteFood);
+        mFBA.setUserProperty("favorite_food", mFavoriteFood);
         // [END user_property]
     }
 
@@ -208,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
             Bundle params = new Bundle();
             params.putString("image_name", name);
             params.putString("full_text", text);
-            mFirebaseAnalytics.logEvent("share_image", params);
+            mFBA.logEvent("share_image", params);
             // [END custom_event]
         }
         return false;
@@ -243,15 +295,110 @@ public class MainActivity extends AppCompatActivity {
     private void recordImageView() {
         String id =  getCurrentImageId();
         String name = getCurrentImageTitle();
-
-        // [START image_view_event]
         Bundle bundle = new Bundle();
         bundle.putString(FirebaseAnalytics.Param.ITEM_ID, id);
         bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, name);
         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "image");
-        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
-        // [END image_view_event]
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, "sn_set2event");
+        mFBA.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
+
+    public void ob_btnClick(View view) {
+        Button btn = (Button)view;
+        String btnText = btn.getText().toString();
+        Log.d(TAG, "ob_btnClick: "+btnText);
+        switch (btnText) {
+            case "consent_open" -> obFn_consent_open();
+            case "consent_check" -> obFn_consent_check();
+            case "GA_enable" -> obFn_GA_enable();
+            case "GA_disable" -> obFn_GA_disable();
+            case "custom_event" -> OBFunc.obFn_custom_event(mFBA);
+            case "click" -> OBFunc.obFn_click(mFBA);
+            case "view" -> OBFunc.obFn_view(mFBA);
+            case "select_content" -> OBFunc.obFn_select_content(mFBA);
+            case "dynamic_link_app_open" -> OBFunc.obFn_dynamic_link_app_open(mFBA);
+            case "view_promotion" -> OBFunc.obFn_view_promotion(mFBA);
+            case "select_promotion" -> OBFunc.obFn_select_promotion(mFBA);
+            case "view_item_list" -> OBFunc.obFn_view_item_list(mFBA);
+            case "select_item" -> OBFunc.obFn_select_item(mFBA);
+            case "add_to_cart" -> OBFunc.obFn_add_to_cart(mFBA);
+            case "view_cart" -> OBFunc.obFn_view_cart(mFBA);
+            case "remove_from_cart" -> OBFunc.obFn_remove_from_cart(mFBA);
+            case "add_to_wishlist" -> OBFunc.obFn_add_to_wishlist(mFBA);
+            case "add_payment_info" -> OBFunc.obFn_add_payment_info(mFBA);
+            case "add_shipping_info" -> OBFunc.obFn_add_shipping_info(mFBA);
+            case "begin_checkout" -> OBFunc.obFn_begin_checkout(mFBA);
+            case "purchase" -> OBFunc.obFn_purchase(mFBA);
+            case "refund" -> OBFunc.obFn_refund(mFBA);
+        }
+    }
+
+    private void obFn_consent_open(){
+        consentTool.openCmpConsentToolView(this);
+    }
+    private void obFn_GA_enable(){
+        mFBA.setAnalyticsCollectionEnabled(true);
+        Map<FirebaseAnalytics.ConsentType, FirebaseAnalytics.ConsentStatus> consentMap = new EnumMap<>(FirebaseAnalytics.ConsentType.class);
+        consentMap.put(FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE, FirebaseAnalytics.ConsentStatus.GRANTED);
+        consentMap.put(FirebaseAnalytics.ConsentType.AD_STORAGE, FirebaseAnalytics.ConsentStatus.GRANTED);
+        consentMap.put(FirebaseAnalytics.ConsentType.AD_USER_DATA, FirebaseAnalytics.ConsentStatus.GRANTED);
+        consentMap.put(FirebaseAnalytics.ConsentType.AD_PERSONALIZATION, FirebaseAnalytics.ConsentStatus.GRANTED);
+        mFBA.setConsent(consentMap);
+    }
+    private void obFn_GA_disable(){
+        mFBA.setAnalyticsCollectionEnabled(false);
+    }
+    private void obFn_consent_listener(String info){
+        Log.d(TAG,"obFn_consent_listener: "+info);
+        if(Objects.equals(info, "close")){
+            obFn_consent_check();
+        }
+    }
+    
+/**
+    c51 Function
+    c52 Marketing
+    c53 Preferences
+    c54 Measurement
+    c55 Other
+    c56 Social
+    -++-++++=-++---+-=-++++---=-++++--+=-++++-+-=--+-+++-=-++---++=-++-++++=-++-++-+
+    s1 Google Ads
+    s26 Google Analytics
+**/
+    private boolean obFn_consentCheck_purposes(String[] purposes){
+        boolean allTrue = true;
+        for (String purpose : purposes) {
+            Log.d(TAG,purpose+" "+consentTool.hasPurposeConsent(this, purpose, false, false));
+            if (!consentTool.hasPurposeConsent(this, purpose, false, false)) {
+                allTrue = false;
+                break;
+            }
+        }
+        Log.d(TAG, "obFn_consentCheck_purposes: "+allTrue+" ["+ Arrays.toString(purposes) +"]");
+        return allTrue;
+    }
+    private boolean obFn_consentCheck_vendors(String[] vendors){
+        boolean allTrue = true;
+        for (String vendor : vendors) {
+            if (!consentTool.hasVendorConsent(this, vendor, false)) {
+                allTrue = false;
+                break;
+            }
+        }
+        Log.d(TAG, "obFn_consentCheck_vendors: "+allTrue+" ["+ Arrays.toString(vendors) +"]");
+        return allTrue;
+    }
+
+    private void obFn_consent_check(){
+        Log.d(TAG, "obFn_consent_check");
+        if(obFn_consentCheck_purposes(new String[]{"c51", "c52", "c53", "c54", "c55", "c56"}) && obFn_consentCheck_vendors(new String[]{"s26"})){
+            obFn_GA_enable();
+        }else{
+            obFn_GA_disable();
+        }
+    }
+
 
     /**
      * This sample has a single Activity, so we need to manually record "screen views" as
@@ -263,9 +410,11 @@ public class MainActivity extends AppCompatActivity {
 
         // [START set_current_screen]
         Bundle bundle = new Bundle();
-        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName);
+//        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName);
         bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity");
-        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
+        bundle.putString("opa", "test_SN");
+        // mFBA.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
+        mFBA.logEvent("screen_view", bundle);
         // [END set_current_screen]
     }
 
