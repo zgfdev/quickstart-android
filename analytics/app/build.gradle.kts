@@ -49,7 +49,7 @@ dependencies {
     implementation(project(":internal:lintchecks"))
     implementation(project(":internal:chooserx"))
 
-    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
     // Needed to override the version used by preference-ktx
@@ -62,7 +62,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
 
     // consentmanager
-    implementation("net.consentmanager.sdk:android:1.7.32")
+//   implementation("net.consentmanager.sdk:android:1.7.32")
+     implementation("net.consentmanager.sdk:android:2.2.0")
 
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test:rules:1.5.0")

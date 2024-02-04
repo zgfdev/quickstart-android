@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="true" />
 
         <!-- https://developers.google.com/tag-platform/security/guides/app-consent?platform=android#default-consent -->
         <meta-data android:name="google_analytics_default_allow_analytics_storage" android:value="true" />
@@ -36,6 +36,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- [START firebase_service] -->
+<!--        <service-->
+<!--            android:name=".java.MyFirebaseMessagingService"-->
+<!--            android:exported="false">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGING_EVENT" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
+        <!-- [END firebase_service] -->
 
     </application>
 </manifest>

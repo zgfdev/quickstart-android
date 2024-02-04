@@ -4,6 +4,7 @@ package com.google.firebase.quickstart.analytics.java;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -33,29 +34,22 @@ import java.util.Map;
 import java.util.EnumMap;
 import java.util.Objects;
 
-import net.consentmanager.sdk.CMPConsentTool;
+import net.consentmanager.sdk.CmpManager;
 import net.consentmanager.sdk.common.CmpError;
+import net.consentmanager.sdk.common.callbacks.CmpLayerAppEventListenerInterface;
 import net.consentmanager.sdk.common.callbacks.OnOpenCallback;
 import net.consentmanager.sdk.common.callbacks.OnCloseCallback;
 import net.consentmanager.sdk.common.callbacks.OnErrorCallback;
-import net.consentmanager.sdk.common.callbacks.OnCMPNotOpenedCallback;
-import net.consentmanager.sdk.common.callbacks.OnCmpButtonClickedCallback;
-import net.consentmanager.sdk.consentlayer.model.CMPConfig;
+import net.consentmanager.sdk.common.utils.CmpFrameLayoutHelper;
+import net.consentmanager.sdk.consentlayer.model.CmpConfig;
 import net.consentmanager.sdk.consentlayer.model.valueObjects.CmpButtonEvent;
 import net.consentmanager.sdk.common.callbacks.CmpImportCallback;
 
 
-/**
- * Activity which displays numerous background images that may be viewed. These background images
- * are shown via {@link ImageFragment}.
- */
+/* Activity which displays numerous background images that may be viewed. These background images are shown via {@link ImageFragment}. */
 public class MainActivity extends AppCompatActivity {
-    private CMPConsentTool consentTool;
-
-    // private static final String TAG = "MainActivity";
-    private static final String TAG = "OBLOG";
+    private static final String TAG = "OBLOG"; //MainActivity
     private static final String KEY_FAVORITE_FOOD = "favorite_food";
-
     private static final ImageInfo[] IMAGE_INFOS = {
             new ImageInfo(R.drawable.favorite, R.string.pattern1_title, R.string.pattern1_id),
             new ImageInfo(R.drawable.flash, R.string.pattern2_title, R.string.pattern2_id),
@@ -71,57 +65,58 @@ public class MainActivity extends AppCompatActivity {
      */
     private ImagePagerAdapter mImagePagerAdapter;
 
-    /**
-     * The {@link ViewPager} that will host the patterns.
-     */
+    /* The {@link ViewPager} that will host the patterns. */
     private ViewPager2 mViewPager;
 
-    /**
-     * The {@code FirebaseAnalytics} used to record screen views.
-     */
+
+    /*-++-++++=-++---+-=-++++---=-++++--+=-++++-+-=--+-+++-=-++---++=-++-++++=-++-++-+*/
+    /* The {@code FirebaseAnalytics} used to record screen views. */
     // [START declare_analytics]
     private FirebaseAnalytics mFBA;
     // [END declare_analytics]
 
-    /**
-     * The user's favorite food, chosen from a dialog.
-     */
+    /* The user's favorite food, chosen from a dialog. */
     private String mFavoriteFood;
 
-    @Override
+    CmpManager cmpManager = null;
+
+
+//    private int createFrameLayout() {
+//        int layoutId = new CmpFrameLayoutHelper(this).createFrameLayout(new Rect(0, 0, 400, 600), 0F);
+//        return layoutId;
+//    }
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+//        int layoutId2 = createFrameLayout();
         //consentmanager instance
-        CMPConfig obcmpConfig = CMPConfig.INSTANCE;
-        obcmpConfig.setServerDomain("delivery.consentmanager.net");
-        obcmpConfig.setAppName("DemoAppTM");
-        obcmpConfig.setLanguage("EN");
-        obcmpConfig.setId("xxxxx"); //replace these configuration variables with your own CMP information
-        obcmpConfig.setDebug(true);
-        consentTool = CMPConsentTool.createInstance(this, obcmpConfig);
-//        consentTool = CMPConsentTool.createInstance(this, cmpID, "delivery.consentmanager.net", "DemoAppTM", "EN");
+        CmpConfig cmpConfig = CmpConfig.INSTANCE;
+//        CmpConfig.activateCustomLayer(layoutId2);
+        cmpConfig.setId("xxxxxxxxxxxxx"); //replace it with your own CODE-ID
+        cmpConfig.setDomain("delivery.consentmanager.net");
+        cmpConfig.setAppName("DemoAppTM");
+        cmpConfig.setLanguage("EN");
+        cmpConfig.setTimeout(4000);
+        cmpConfig.enableDebugMode();
+        cmpManager = CmpManager.createInstance(this, cmpConfig);
+
+//        cmpConfig.activateCustomLayer(R.id.cmpContainer);
+//        cmpManager.setGoogleAnalyticsCallback(this)
+//        cmpManager.openConsentLayer(getApplication());
 
         //consentmanager event listener
-        consentTool.setCallbacks(
+        cmpManager.setCallbacks(
             ()->obFn_consent_listener("open"),
             ()->obFn_consent_listener("close"),
             ()->obFn_consent_listener("not-open"),
-            new OnErrorCallback() {
-                @Override
-                public void errorOccurred(@NonNull CmpError type, @NonNull String message) {
-                    obFn_consent_listener("error");
-                    OnErrorCallback.super.errorOccurred(type, message);
-                }
-            },
-            new OnCmpButtonClickedCallback() {
-                @Override
-                public void onButtonClicked(@NonNull CmpButtonEvent cmpButtonEvent) {
-                    obFn_consent_listener("click");
-                }
-        });
+                (@NonNull CmpError type, @NonNull String message)->obFn_consent_listener("error"),
+                (@NonNull CmpButtonEvent cmpButtonEvent)->obFn_consent_listener("click")
+        );
+
+
 
         //consentmanager import&export
         // final String CMP_STRING = "QlAyZkFuQ1AyZkFuQ0FmUjJCRU5BQkFBQUFBQUFBI181MV81Ml81M181NF81NV8jX3MyM19zMjZfczkwNV9VXyMxWU5OIw";
@@ -155,14 +150,11 @@ public class MainActivity extends AppCompatActivity {
         // dParams.putString(FirebaseAnalytics.Param.SCREEN_NAME, "sn_set2all");
         mFBA.setDefaultEventParameters(dParams);
 
-
         // Create the adapter that will return a fragment for each image.
         mImagePagerAdapter = new ImagePagerAdapter(getSupportFragmentManager(), IMAGE_INFOS, getLifecycle());
-
         // Set up the ViewPager with the pattern adapter.
         mViewPager = binding.viewPager;
         mViewPager.setAdapter(mImagePagerAdapter);
-
         mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -171,9 +163,7 @@ public class MainActivity extends AppCompatActivity {
                 recordScreenView();
             }
         });
-
         TabLayout tabLayout = binding.tabLayout;
-
         // When the visible image changes, send a screen view hit.
         new TabLayoutMediator(tabLayout, mViewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
@@ -191,10 +181,7 @@ public class MainActivity extends AppCompatActivity {
         recordScreenView();
     }
 
-    /**
-     * Display a dialog prompting the user to pick a favorite food from a list, then record
-     * the answer.
-     */
+    /* Display a dialog prompting the user to pick a favorite food from a list, then record the answer. */
     private void askFavoriteFood() {
         final String[] choices = getResources().getStringArray(R.array.food_items);
         AlertDialog ad = new AlertDialog.Builder(this)
@@ -334,10 +321,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void obFn_consent_open(){
-        consentTool.openCmpConsentToolView(this);
+        cmpManager.openConsentLayer(getApplication());
     }
     private void obFn_GA_enable(){
-        mFBA.setAnalyticsCollectionEnabled(true);
+//        mFBA.setAnalyticsCollectionEnabled(true);
         Map<FirebaseAnalytics.ConsentType, FirebaseAnalytics.ConsentStatus> consentMap = new EnumMap<>(FirebaseAnalytics.ConsentType.class);
         consentMap.put(FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE, FirebaseAnalytics.ConsentStatus.GRANTED);
         consentMap.put(FirebaseAnalytics.ConsentType.AD_STORAGE, FirebaseAnalytics.ConsentStatus.GRANTED);
@@ -346,7 +333,16 @@ public class MainActivity extends AppCompatActivity {
         mFBA.setConsent(consentMap);
     }
     private void obFn_GA_disable(){
-        mFBA.setAnalyticsCollectionEnabled(false);
+//        mFBA.setAnalyticsCollectionEnabled(false);
+        Map<FirebaseAnalytics.ConsentType, FirebaseAnalytics.ConsentStatus> consentMap = new EnumMap<>(FirebaseAnalytics.ConsentType.class);
+        consentMap.put(FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE, FirebaseAnalytics.ConsentStatus.DENIED);
+        consentMap.put(FirebaseAnalytics.ConsentType.AD_STORAGE, FirebaseAnalytics.ConsentStatus.DENIED);
+        consentMap.put(FirebaseAnalytics.ConsentType.AD_USER_DATA, FirebaseAnalytics.ConsentStatus.DENIED);
+        consentMap.put(FirebaseAnalytics.ConsentType.AD_PERSONALIZATION, FirebaseAnalytics.ConsentStatus.DENIED);
+        mFBA.setConsent(consentMap);
+    }
+    private void obFn_GA_setConsentMode(){
+
     }
     private void obFn_consent_listener(String info){
         Log.d(TAG,"obFn_consent_listener: "+info);
@@ -369,8 +365,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean obFn_consentCheck_purposes(String[] purposes){
         boolean allTrue = true;
         for (String purpose : purposes) {
-            Log.d(TAG,purpose+" "+consentTool.hasPurposeConsent(this, purpose, false, false));
-            if (!consentTool.hasPurposeConsent(this, purpose, false, false)) {
+            Log.d(TAG,purpose+" "+cmpManager.hasPurposeConsent(purpose));
+            if (!cmpManager.hasPurposeConsent(purpose)) {
                 allTrue = false;
                 break;
             }
@@ -381,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean obFn_consentCheck_vendors(String[] vendors){
         boolean allTrue = true;
         for (String vendor : vendors) {
-            if (!consentTool.hasVendorConsent(this, vendor, false)) {
+            if (!cmpManager.hasVendorConsent(vendor)) {
                 allTrue = false;
                 break;
             }

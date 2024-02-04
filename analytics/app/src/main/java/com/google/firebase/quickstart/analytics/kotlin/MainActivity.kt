@@ -1,15 +1,19 @@
 package com.google.firebase.quickstart.analytics.kotlin
 
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
@@ -21,7 +25,13 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
 import com.google.firebase.quickstart.analytics.R
 import com.google.firebase.quickstart.analytics.databinding.ActivityMainBinding
-import com.google.firebase.quickstart.analytics.kotlin.MainActivity.Companion.IMAGE_INFOS
+import com.google.firebase.quickstart.analytics.java.MainActivity
+import kotlinx.coroutines.launch
+import net.consentmanager.sdk.CmpManager
+import net.consentmanager.sdk.common.utils.CmpFrameLayoutHelper
+import net.consentmanager.sdk.consentlayer.model.CmpConfig
+import java.util.Arrays
+import java.util.EnumMap
 import java.util.Locale
 
 /**
@@ -30,7 +40,7 @@ import java.util.Locale
  */
 class MainActivity : AppCompatActivity() {
     companion object {
-        private const val TAG = "MainActivity"
+        private const val TAG = "OBLOG"
         private const val KEY_FAVORITE_FOOD = "favorite_food"
 
         private val IMAGE_INFOS = arrayOf(
@@ -49,11 +59,32 @@ class MainActivity : AppCompatActivity() {
      */
     private lateinit var imagePagerAdapter: ImagePagerAdapter
 
+    private lateinit var cmpManager: CmpManager
+
+    private suspend fun openCmp(language: String) {
+        val layoutId = createFrameLayout()
+        // or add the containerID here
+        CmpConfig.activateCustomLayer(layoutId)
+        val consentTool = CmpManager.createInstance(
+            context = applicationContext,
+            codeId = "xxxxxxxxxxx",
+            serverDomain = "delivery.consentmanager.net",
+            appName = "DemoAppTM",
+            lang = language,
+            timeout = 7000,
+        )
+        consentTool.openConsentLayer(this)
+    }
+
+    private suspend fun createFrameLayout(): Int {
+        return CmpFrameLayoutHelper(this).createFrameLayout(Rect(0, 200, 400, 600), 0F)
+    }
+
     /**
      * The `FirebaseAnalytics` used to record screen views.
      */
     // [START declare_analytics]
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
+    private lateinit var mFBA: FirebaseAnalytics
     // [END declare_analytics]
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,9 +92,25 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val config = CmpConfig.apply {
+            id ="xxxxxxxxxxxx"
+            domain = "delivery.consentmanager.net"
+            appName = "DemoAppTM"
+            language = "EN"
+        }
+        cmpManager = CmpManager.createInstance(this, config)
+        cmpManager.initialize(this)
+
+
+//        lifecycleScope.launch {
+//            openCmp("EN")
+//        }
+
+//        cmpManager.setGoogleAnalyticsCallback(updateGoogleConsent)
+
         // [START shared_app_measurement]
         // Obtain the FirebaseAnalytics instance.
-        firebaseAnalytics = Firebase.analytics
+        mFBA = Firebase.analytics
         // [END shared_app_measurement]
 
         // On first app open, ask the user his/her favorite food. Then set this as a user property
@@ -142,7 +189,7 @@ class MainActivity : AppCompatActivity() {
             .apply()
 
         // [START user_property]
-        firebaseAnalytics.setUserProperty("favorite_food", food)
+        mFBA.setUserProperty("favorite_food", food)
         // [END user_property]
     }
 
@@ -164,7 +211,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(sendIntent)
 
             // [START custom_event]
-            firebaseAnalytics.logEvent("share_image") {
+            mFBA.logEvent("share_image") {
                 param("image_name", name)
                 param("full_text", text)
             }
@@ -204,12 +251,116 @@ class MainActivity : AppCompatActivity() {
         val name = getCurrentImageTitle()
 
         // [START image_view_event]
-        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_ITEM) {
+        mFBA.logEvent(FirebaseAnalytics.Event.SELECT_ITEM) {
             param(FirebaseAnalytics.Param.ITEM_ID, id)
             param(FirebaseAnalytics.Param.ITEM_NAME, name)
             param(FirebaseAnalytics.Param.CONTENT_TYPE, "image")
         }
         // [END image_view_event]
+    }
+
+    fun ob_btnClick(view: View) {
+        val btn = view as Button
+        val btnText = btn.text.toString()
+        Log.d(TAG, "ob_btnClick: $btnText")
+        when (btnText) {
+            "consent_open" -> obFn_consent_open()
+            "consent_check" -> obFn_consent_check()
+            "GA_enable" -> obFn_GA_enable()
+            "GA_disable" -> obFn_GA_disable()
+            "custom_event" -> OB_Func.obFn_custom_event(mFBA)
+            "click" -> OB_Func.obFn_click(mFBA)
+            "view" -> OB_Func.obFn_view(mFBA)
+            "select_content" -> OB_Func.obFn_select_content(mFBA)
+            "dynamic_link_app_open" -> OB_Func.obFn_dynamic_link_app_open(mFBA)
+            "view_promotion" -> OB_Func.obFn_view_promotion(mFBA)
+            "select_promotion" -> OB_Func.obFn_select_promotion(mFBA)
+            "view_item_list" -> OB_Func.obFn_view_item_list(mFBA)
+            "select_item" -> OB_Func.obFn_select_item(mFBA)
+            "add_to_cart" -> OB_Func.obFn_add_to_cart(mFBA)
+            "view_cart" -> OB_Func.obFn_view_cart(mFBA)
+            "remove_from_cart" -> OB_Func.obFn_remove_from_cart(mFBA)
+            "add_to_wishlist" -> OB_Func.obFn_add_to_wishlist(mFBA)
+            "add_payment_info" -> OB_Func.obFn_add_payment_info(mFBA)
+            "add_shipping_info" -> OB_Func.obFn_add_shipping_info(mFBA)
+            "begin_checkout" -> OB_Func.obFn_begin_checkout(mFBA)
+            "purchase" -> OB_Func.obFn_purchase(mFBA)
+            "refund" -> OB_Func.obFn_refund(mFBA)
+            else -> {
+                // Handle the case when the button text doesn't match any of the above
+            }
+        }
+    }
+
+    private fun obFn_consent_open() {
+        cmpManager.openConsentLayer(application)
+    }
+    private fun obFn_consentCheck_purposes(purposes: Array<String>): Boolean {
+        var allTrue = true
+        for (purpose in purposes) {
+            Log.d(TAG, purpose + " " + cmpManager.hasPurposeConsent(purpose))
+            if (!cmpManager.hasPurposeConsent(purpose)) {
+                allTrue = false
+                break
+            }
+        }
+        Log.d(TAG, "obFn_consentCheck_purposes: " + allTrue + " [" + purposes.contentToString() + "]")
+        return allTrue
+    }
+
+    private fun obFn_consentCheck_vendors(vendors: Array<String>): Boolean {
+        var allTrue = true
+        for (vendor in vendors) {
+            if (!cmpManager.hasVendorConsent(vendor)) {
+                allTrue = false
+                break
+            }
+        }
+        Log.d(TAG, "obFn_consentCheck_vendors: " + allTrue + " [" + vendors.contentToString() + "]")
+        return allTrue
+    }
+    private fun obFn_consent_check() {
+        Log.d(TAG, "obFn_consent_check")
+        if (obFn_consentCheck_purposes(
+                arrayOf<String>(
+                    "c51",
+                    "c52",
+                    "c53",
+                    "c54",
+                    "c55",
+                    "c56"
+                )
+            ) && obFn_consentCheck_vendors(
+                arrayOf<String>("s26")
+            )
+        ) {
+            obFn_GA_enable()
+        } else {
+            obFn_GA_disable()
+        }
+    }
+    private fun obFn_GA_enable() {
+//        mFBA.setAnalyticsCollectionEnabled(true);
+        val consentMap: MutableMap<FirebaseAnalytics.ConsentType, FirebaseAnalytics.ConsentStatus> = EnumMap(
+            FirebaseAnalytics.ConsentType::class.java
+        )
+        consentMap[FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE] = FirebaseAnalytics.ConsentStatus.GRANTED
+        consentMap[FirebaseAnalytics.ConsentType.AD_STORAGE] = FirebaseAnalytics.ConsentStatus.GRANTED
+        consentMap[FirebaseAnalytics.ConsentType.AD_USER_DATA] = FirebaseAnalytics.ConsentStatus.GRANTED
+        consentMap[FirebaseAnalytics.ConsentType.AD_PERSONALIZATION] = FirebaseAnalytics.ConsentStatus.GRANTED
+        mFBA.setConsent(consentMap)
+    }
+
+    private fun obFn_GA_disable() {
+//        mFBA.setAnalyticsCollectionEnabled(false);
+        val consentMap: MutableMap<FirebaseAnalytics.ConsentType, FirebaseAnalytics.ConsentStatus> = EnumMap(
+            FirebaseAnalytics.ConsentType::class.java
+        )
+        consentMap[FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE] = FirebaseAnalytics.ConsentStatus.DENIED
+        consentMap[FirebaseAnalytics.ConsentType.AD_STORAGE] = FirebaseAnalytics.ConsentStatus.DENIED
+        consentMap[FirebaseAnalytics.ConsentType.AD_USER_DATA] = FirebaseAnalytics.ConsentStatus.DENIED
+        consentMap[FirebaseAnalytics.ConsentType.AD_PERSONALIZATION] = FirebaseAnalytics.ConsentStatus.DENIED
+        mFBA.setConsent(consentMap)
     }
 
     /**
@@ -221,7 +372,7 @@ class MainActivity : AppCompatActivity() {
         val screenName = "${getCurrentImageId()}-${getCurrentImageTitle()}"
 
         // [START set_current_screen]
-        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+        mFBA.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
             param(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
         }
